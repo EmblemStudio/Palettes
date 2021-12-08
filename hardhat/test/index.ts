@@ -74,7 +74,16 @@ describe("Paletes", function () {
   const basesId = ["0x", ...solarizedBases].join("").replace(/#/gi, "")
 
   beforeEach(async function () {
-    const Palettes = await ethers.getContractFactory("Palettes")
+    const RGBAx8 = await ethers.getContractFactory("RGBAx8")
+    const rgbax8 = await RGBAx8.deploy()
+    const Palettes = await ethers.getContractFactory(
+      "Palettes",
+      {
+        libraries: {
+          RGBAx8: rgbax8.address,
+        },
+      },
+    )
     palettes = await Palettes.deploy()
     await palettes.deployed()
   })
@@ -83,13 +92,13 @@ describe("Paletes", function () {
 
     for (let i in solarizedAccents) {
       const color = solarizedAccents[i]
-      const RGBA = await palettes.getHexRGBA(i, accentsId)
+      const RGBA = await palettes.getHexRGBA(accentsId, i)
       expect(RGBA).to.equal(color)
     }
 
     for (let i in solarizedBases) {
       const color = solarizedBases[i]
-      const RGBA = await palettes.getHexRGBA(i, basesId)
+      const RGBA = await palettes.getHexRGBA(basesId, i)
       expect(RGBA).to.equal(color)
     }
 
