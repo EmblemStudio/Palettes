@@ -1,13 +1,12 @@
-//SPDX-License-Identifier: Unlicense
+//SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "base64-sol/base64.sol";
 
-library RGBAx8 {
+library PalettesLib {
     bytes16 private constant _HEX_SYMBOLS = "0123456789ABCDEF";
 
     uint32 private constant maskR = 0xff000000;
@@ -65,7 +64,7 @@ library RGBAx8 {
 }
 
 contract Palettes is ERC721Enumerable, ReentrancyGuard {
-    using RGBAx8 for uint256;
+    using PalettesLib for uint256;
 
     constructor () ERC721("Palettes", "RGBAx8") {}
 
@@ -90,44 +89,46 @@ contract Palettes is ERC721Enumerable, ReentrancyGuard {
     }
 
     function tokenURI(uint256 id) public view virtual override returns (string memory) {
+
         /* example svg output
           <svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350">
-            <rect x="0" y="0" width="26%" height="51%" style="fill:#000000FF" />
-            <rect x="25%" y="0" width="26%" height="51%" style="fill:#0000FFFF" />
-            <rect x="50%" y="0" width="26%" height="51%" style="fill:#00FF00FF" />
-            <rect x="75%" y="0" width="25%" height="51%" style="fill:#FF0000FF" />
-            <rect x="0" y="50%" width="26%" height="50%" style="fill:#FFFF00FF" />
-            <rect x="25%" y="50%" width="26%" height="50%" style="fill:#00FFFFFF" />
-            <rect x="50%" y="50%" width="26%" height="50%" style="fill:#aFFFF0FF" />
+            <rect x="0" y="0" width="37.5%" height="75%" style="fill:#000000FF" />
+            <rect x="25%" y="0" width="37.5%" height="75%" style="fill:#0000FFFF" />
+            <rect x="50%" y="0" width="37.5%" height="75%" style="fill:#00FF00FF" />
+            <rect x="75%" y="0" width="25%" height="75%" style="fill:#FF0000FF" />
+            <rect x="0" y="50%" width="37.5%" height="50%" style="fill:#FFFF00FF" />
+            <rect x="25%" y="50%" width="37.5%" height="50%" style="fill:#00FFFFFF" />
+            <rect x="50%" y="50%" width="37.5%" height="50%" style="fill:#aFFFF0FF" />
             <rect x="75%" y="50%" width="25%" height="50%" style="fill:#0FFFa0FF" />
           </svg>
         */
+
         string memory part0 = "<svg xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMinYMin meet\" viewBox=\"0 0 350 350\">";
-        string memory part1 = join("<rect x=\"0\" y=\"0\" width=\"26%\" height=\"51%\" style=\"fill:",
+        string memory part1 = join("<rect x=\"0\" y=\"0\" width=\"37.5%\" height=\"75%\" style=\"fill:",
                                    id.hexRGBA(0),
                                    "\" />"
                                    );
-        string memory part2 = join("<rect x=\"25%\" y=\"0\" width=\"26%\" height=\"51%\" style=\"fill:",
+        string memory part2 = join("<rect x=\"25%\" y=\"0\" width=\"37.5%\" height=\"75%\" style=\"fill:",
                                    id.hexRGBA(1),
                                    "\" />"
                                    );
-        string memory part3 = join("<rect x=\"50%\" y=\"0\" width=\"26%\" height=\"51%\" style=\"fill:",
+        string memory part3 = join("<rect x=\"50%\" y=\"0\" width=\"37.5%\" height=\"75%\" style=\"fill:",
                                    id.hexRGBA(2),
                                    "\" />"
                                    );
-        string memory part4 = join("<rect x=\"75%\" y=\"0\" width=\"25%\" height=\"51%\" style=\"fill:",
+        string memory part4 = join("<rect x=\"75%\" y=\"0\" width=\"25%\" height=\"75%\" style=\"fill:",
                                    id.hexRGBA(3),
                                    "\" />"
                                    );
-        string memory part5 = join("<rect x=\"0\" y=\"50%\" width=\"26%\" height=\"50%\" style=\"fill:",
+        string memory part5 = join("<rect x=\"0\" y=\"50%\" width=\"37.5%\" height=\"50%\" style=\"fill:",
                                    id.hexRGBA(4),
                                    "\" />"
                                    );
-        string memory part6 = join("<rect x=\"25%\" y=\"50%\" width=\"26%\" height=\"50%\" style=\"fill:",
+        string memory part6 = join("<rect x=\"25%\" y=\"50%\" width=\"37.5%\" height=\"50%\" style=\"fill:",
                                    id.hexRGBA(5),
                                    "\" />"
                                    );
-        string memory part7 = join("<rect x=\"50%\" y=\"50%\" width=\"26%\" height=\"50%\" style=\"fill:",
+        string memory part7 = join("<rect x=\"50%\" y=\"50%\" width=\"37.5%\" height=\"50%\" style=\"fill:",
                                    id.hexRGBA(6),
                                    "\" />"
                                    );
