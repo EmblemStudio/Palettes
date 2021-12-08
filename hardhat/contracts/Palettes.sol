@@ -130,7 +130,6 @@ contract Palettes is ERC721Enumerable, ReentrancyGuard {
                             "\" />"
                             );
         string memory part8 = join("<rect x=\"75%\" y=\"50%\" width=\"25%\" height=\"50%\" style=\"fill:",
-
                             hexRGBAs[7],
                             "\" /></svg>"
                             );
@@ -144,7 +143,6 @@ contract Palettes is ERC721Enumerable, ReentrancyGuard {
                                             part7,
                                             part8
                                             );
-
         return string(abi.encodePacked("data:image/svg+xml;base64,",
                                        Base64.encode(svg)
                                        ));
