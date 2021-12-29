@@ -14,20 +14,20 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-    const Lib = await ethers.getContractFactory("PalettesLib")
-    const lib = await Lib.deploy()
-    const Palettes = await ethers.getContractFactory(
-      "Palettes",
-      {
-        libraries: {
-          PalettesLib: lib.address,
-        },
+  const Lib = await ethers.getContractFactory("PalettesLib")
+  const lib = await Lib.deploy()
+  const Palettes = await ethers.getContractFactory(
+    "Palettes",
+    {
+      libraries: {
+        PalettesLib: lib.address,
       },
-    )
-    palettes = await Palettes.deploy()
+    },
+  )
+  const palettes = await Palettes.deploy()
   await palettes.deployed()
 
-  console.log("RGBAx8 deployed to:  ", rgbax8.address)
+  console.log("RGBAx8 deployed to:  ", lib.address)
   console.log("Palettes deployed to:", palettes.address)
 
   const yellow  = "#B58900FF"

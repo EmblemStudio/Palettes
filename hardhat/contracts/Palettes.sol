@@ -14,7 +14,7 @@ library PalettesLib {
     uint32 private constant maskB = 0x0000ff00;
     uint32 private constant maskA = 0x000000ff;
 
-    function hexRGBA(uint256 id, uint256 i) public pure returns (string memory) {
+    function color(uint256, uint256 i) internal pure returns (uint32) {
         require(i < 8, "Color index out of bounds");
 
         uint256[8] memory masks = [
@@ -28,8 +28,57 @@ library PalettesLib {
             0x00000000000000000000000000000000000000000000000000000000ffffffff
         ];
 
-        uint32 color = uint32((id & masks[i]) >> ((7 - i) * 32));
+        return uint32((id & masks[i]) >> ((7 - i) * 32));
+    }
 
+    function HSVA(uint256 id, uint256 i) public pure returns (string memory) {
+        color uint32 = color(id, i);
+        r uint32 = (color & maskR) >> 8 * 3;
+        g uint32 = (color & maskG) >> 8 * 2;
+        b uint32 = (color & maskB) >> 8;
+        a uint32 = (color & maskA);
+
+        R uint32 = (r * 100) / 255; // percent values
+        G uint32 = (r * 100) / 255;
+        B uint32 = (r * 100) / 255;
+
+        uint32 H;
+        uint32 S;
+        uint32 V;
+
+        uint32 cMax = R >= G ? R : G;
+        cMax = B >= cMax ? B : cMax;
+
+        uint32 cMin = R <= G ? R : G;
+        cMin = B <= cMin ? B : cMin;
+
+        uint32 delta = cMax - cMin;
+
+        uint32 H;
+        if (delta == 0) {
+            H = 0;
+        } else if (cMax == R) {
+            H = 60 * ((((G - B) / delta) % 600) / 100);
+        } else if (cMax == G) {
+            H = 60 * ((((B - R) / delta) + 200) / 100);
+        } else { // cMax == B
+            H = 60 * ((((R - G) / delta) + 400) / 100);
+        }
+
+        uint32 S;
+        if (cMax == 0) {
+            S = 0;
+        } else {
+            S = (delta / cMax) / 100;
+        }
+
+        uint32 V = cMax;
+
+        return abi.encodePacked("hsva(", H, ", ", S, ", ", V, ", ", A, ")");
+    }
+
+    function hexRGBA(uint256 id, uint256 i) public pure returns (string memory) {
+        uint32 color = color(id, i);
         /**
          * Converts color `uint32` to its ASCII `string` hexadecimal
          * representation without a 0x prefix for use in RGBA colors.
@@ -69,6 +118,7 @@ contract Palettes is ERC721Enumerable, ReentrancyGuard {
     constructor () ERC721("Palettes", "RGBAx8") {}
 
     function claim(uint256 tokenId) public nonReentrant {
+        // TODO: Accept tips, add a thank you with the tip amount to the NFT
         _safeMint(_msgSender(), tokenId);
     }
 
