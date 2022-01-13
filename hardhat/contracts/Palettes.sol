@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "base64-sol/base64.sol";
 
 library PalettesLib {
@@ -14,7 +15,7 @@ library PalettesLib {
     uint32 private constant maskB = 0x0000ff00;
     uint32 private constant maskA = 0x000000ff;
 
-    function color(uint256, uint256 i) internal pure returns (uint32) {
+    function getColor(uint256 id, uint256 i) internal pure returns (uint32) {
         require(i < 8, "Color index out of bounds");
 
         uint256[8] memory masks = [
@@ -32,19 +33,15 @@ library PalettesLib {
     }
 
     function HSVA(uint256 id, uint256 i) public pure returns (string memory) {
-        color uint32 = color(id, i);
-        r uint32 = (color & maskR) >> 8 * 3;
-        g uint32 = (color & maskG) >> 8 * 2;
-        b uint32 = (color & maskB) >> 8;
-        a uint32 = (color & maskA);
+        uint32 color = getColor(id, i);
+        uint32 r = (color & maskR) >> 8 * 3;
+        uint32 g = (color & maskG) >> 8 * 2;
+        uint32 b = (color & maskB) >> 8;
+        uint32 a = (color & maskA);
 
-        R uint32 = (r * 100) / 255; // percent values
-        G uint32 = (r * 100) / 255;
-        B uint32 = (r * 100) / 255;
-
-        uint32 H;
-        uint32 S;
-        uint32 V;
+        uint32 R = (r * 100) / 255; // percent values
+        uint32 G = (r * 100) / 255;
+        uint32 B = (r * 100) / 255;
 
         uint32 cMax = R >= G ? R : G;
         cMax = B >= cMax ? B : cMax;
@@ -74,11 +71,11 @@ library PalettesLib {
 
         uint32 V = cMax;
 
-        return abi.encodePacked("hsva(", H, ", ", S, ", ", V, ", ", A, ")");
+        return string(abi.encodePacked("hsva(", H, ", ", S, ", ", V, ", ", a, ")"));
     }
 
     function hexRGBA(uint256 id, uint256 i) public pure returns (string memory) {
-        uint32 color = color(id, i);
+        uint32 color = getColor(id, i);
         /**
          * Converts color `uint32` to its ASCII `string` hexadecimal
          * representation without a 0x prefix for use in RGBA colors.
@@ -96,7 +93,7 @@ library PalettesLib {
         return string(abi.encodePacked("#", hexString));
     }
 
-    function colors(uint256 id) external pure returns (string memory) {
+    function getColors(uint256 id) external pure returns (string memory) {
         return string(abi.encodePacked(
                                        "["
                                        "\"", hexRGBA(id, 0), "\","
@@ -112,14 +109,27 @@ library PalettesLib {
     }
 }
 
-contract Palettes is ERC721Enumerable, ReentrancyGuard {
+contract Palettes is Ownable, ERC721Enumerable, ReentrancyGuard {
     using PalettesLib for uint256;
 
     constructor () ERC721("Palettes", "RGBAx8") {}
 
-    function claim(uint256 tokenId) public nonReentrant {
+    struct Donation {
+        address benefactor;
+        uint256 amount;
+    }
+
+    mapping(uint256 => Donation) public donations;
+
+    function claim(uint256 tokenId) public payable nonReentrant {
         // TODO: Accept tips, add a thank you with the tip amount to the NFT
         _safeMint(_msgSender(), tokenId);
+
+        if (msg.value > 0) {
+            (bool sent,) = owner().call{value: msg.value}("");
+            require(sent, "Could not send donation");
+            donations[tokenId] = Donation(msg.sender, msg.value);
+        }
     }
 
     function join(
@@ -132,10 +142,6 @@ contract Palettes is ERC721Enumerable, ReentrancyGuard {
 
     function getHexRGBA(uint256 id, uint8 i) external pure returns (string memory) {
         return id.hexRGBA(i);
-    }
-
-    function getColors(uint256 id) external pure returns (string memory) {
-        return id.colors();
     }
 
     function tokenURI(uint256 id) public view virtual override returns (string memory) {

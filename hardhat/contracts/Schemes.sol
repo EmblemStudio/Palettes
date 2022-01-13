@@ -1,119 +1,116 @@
 //SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 import "./Palettes.sol";
 
 library SchemesLib {
     using PalettesLib for uint256;
 
     struct Scheme {
-        string labels[8];
+        address creator;
+        string[][8] classes; // classes[label][property]
         // TODO some configuration for varying properties
         // like opacity, hue, saturation, brightness
         // anything that the filter css prop can do?
-    };
+    }
 
-    function css(Scheme scheme, uint256 palette) public pure returns (string) {
-        /* Example CSS output
-.scheme-{label}-background-color: {color}
-.scheme-{label}-border-bottom-color: {color}
-.scheme-{label}-border-color: {color}
-.scheme-{label}-border-left-color: {color}
-.scheme-{label}-border-right-color: {color}
-.scheme-{label}-border-top-color: {color}
-.scheme-{label}-box-shadow: {color}
-.scheme-{label}-caret-color: {color}
-.scheme-{label}-color: {color}
-.scheme-{label}-column-rule-color: {color}
-.scheme-{label}-outline-color: {color}
-.scheme-{label}-text-decoration-color: {color}
+    function _cssBlock(string calldata color,
+                       string calldata label,
+                       string[] calldata properties,
+    ) internal pure returns (string memory) {
+        /* For each property
+          .scheme-<label>-color {
+            {property}: <color>
+          }
          */
-        parts = [
-                 abi.encodePacked(".scheme-", scheme.label[0], "-color-", palette.hexRGBA(0)),
-                 abi.encodePacked(".scheme-", scheme.label[1], "-color-", palette.hexRGBA(1)),
-                 abi.encodePacked(".scheme-", scheme.label[2], "-color-", palette.hexRGBA(2)),
-                 abi.encodePacked(".scheme-", scheme.label[3], "-color-", palette.hexRGBA(3)),
-                 abi.encodePacked(".scheme-", scheme.label[4], "-color-", palette.hexRGBA(4)),
-                 abi.encodePacked(".scheme-", scheme.label[5], "-color-", palette.hexRGBA(5)),
-                 abi.encodePacked(".scheme-", scheme.label[6], "-color-", palette.hexRGBA(6)),
-                 abi.encodePacked(".scheme-", scheme.label[7], "-color-", palette.hexRGBA(7)),
-                 abi.encodePacked(".scheme-", scheme.label[0], "-background-color-", palette.hexRGBA(0)),
-                 abi.encodePacked(".scheme-", scheme.label[1], "-background-color-", palette.hexRGBA(1)),
-                 abi.encodePacked(".scheme-", scheme.label[2], "-background-color-", palette.hexRGBA(2)),
-                 abi.encodePacked(".scheme-", scheme.label[3], "-background-color-", palette.hexRGBA(3)),
-                 abi.encodePacked(".scheme-", scheme.label[4], "-background-color-", palette.hexRGBA(4)),
-                 abi.encodePacked(".scheme-", scheme.label[5], "-background-color-", palette.hexRGBA(5)),
-                 abi.encodePacked(".scheme-", scheme.label[6], "-background-color-", palette.hexRGBA(6)),
-                 abi.encodePacked(".scheme-", scheme.label[7], "-background-color-", palette.hexRGBA(7)),
-                 abi.encodePacked(".scheme-", scheme.label[0], "-fill-", palette.hexRGBA(0)),
-                 abi.encodePacked(".scheme-", scheme.label[1], "-fill-", palette.hexRGBA(1)),
-                 abi.encodePacked(".scheme-", scheme.label[2], "-fill-", palette.hexRGBA(2)),
-                 abi.encodePacked(".scheme-", scheme.label[3], "-fill-", palette.hexRGBA(3)),
-                 abi.encodePacked(".scheme-", scheme.label[4], "-fill-", palette.hexRGBA(4)),
-                 abi.encodePacked(".scheme-", scheme.label[5], "-fill-", palette.hexRGBA(5)),
-                 abi.encodePacked(".scheme-", scheme.label[6], "-fill-", palette.hexRGBA(6)),
-                 abi.encodePacked(".scheme-", scheme.label[7], "-fill-", palette.hexRGBA(7)),
-                 abi.encodePacked(".scheme-", scheme.label[0], "-stroke-", palette.hexRGBA(0)),
-                 abi.encodePacked(".scheme-", scheme.label[1], "-stroke-", palette.hexRGBA(1)),
-                 abi.encodePacked(".scheme-", scheme.label[2], "-stroke-", palette.hexRGBA(2)),
-                 abi.encodePacked(".scheme-", scheme.label[3], "-stroke-", palette.hexRGBA(3)),
-                 abi.encodePacked(".scheme-", scheme.label[4], "-stroke-", palette.hexRGBA(4)),
-                 abi.encodePacked(".scheme-", scheme.label[5], "-stroke-", palette.hexRGBA(5)),
-                 abi.encodePacked(".scheme-", scheme.label[6], "-stroke-", palette.hexRGBA(6)),
-                 abi.encodePacked(".scheme-", scheme.label[7], "-stroke-", palette.hexRGBA(7)),
-                 ];
-        return string(abi.encodePacked(
-                                       parts[0],
-                                       parts[1],
-                                       parts[2],
-                                       parts[3],
-                                       parts[4],
-                                       parts[5],
-                                       parts[6],
-                                       parts[7],
-                                       parts[8],
-                                       parts[9],
-                                       parts[10],
-                                       parts[11],
-                                       parts[12],
-                                       parts[13],
-                                       parts[14],
-                                       parts[15],
-                                       parts[16],
-                                       parts[17],
-                                       parts[18],
-                                       parts[19],
-                                       parts[20],
-                                       parts[21],
-                                       parts[22],
-                                       parts[23],
-                                       parts[24],
-                                       parts[25],
-                                       parts[26],
-                                       parts[27],
-                                       parts[28],
-                                       parts[29],
-                                       parts[30],
-                                       parts[31],
-                                       )); 
+    }
+
+    function css(Scheme memory scheme, uint256 palette) public pure returns (string memory) {
+        string block0 = _cssBlock(pallette.getColor(0), scheme.classes[0][0], scheme.classes[0][1:]);
+        string block0 = _cssBlock(pallette.getColor(1), scheme.classes[1][0], scheme.classes[1][1:]);
+        string block0 = _cssBlock(pallette.getColor(2), scheme.classes[2][0], scheme.classes[2][1:]);
+        string block0 = _cssBlock(pallette.getColor(3), scheme.classes[3][0], scheme.classes[3][1:]);
+        string block0 = _cssBlock(pallette.getColor(4), scheme.classes[4][0], scheme.classes[4][1:]);
+        string block0 = _cssBlock(pallette.getColor(5), scheme.classes[5][0], scheme.classes[5][1:]);
+        string block0 = _cssBlock(pallette.getColor(6), scheme.classes[6][0], scheme.classes[6][1:]);
+        string block0 = _cssBlock(pallette.getColor(7), scheme.classes[7][0], scheme.classes[7][1:]);
+
+        return string(abi.encodePacked(block0,
+                                       block1,
+                                       block2,
+                                       block3,
+                                       block4,
+                                       block5,
+                                       block6,
+                                       block7
+                                       ));
     }
 }
 
 contract Schemes is ERC721Enumerable, ReentrancyGuard {
-    using Counters for Counters.Counter;
     using SchemesLib for SchemesLib.Scheme;
+    using Counters for Counters.Counter;
 
     Counters.Counter public totalSchemes;
 
     constructor () ERC721("Schemes", "SCHM") {}
 
-    mapping(uint256 => SchemesLib.Scheme) public schemes;
+    mapping(string => SchemesLib.Scheme) public schemes;
+    mapping(uint256 => SchemesLib.Scheme) public nfts;
+    Counters.Counter public totalNFTs;
 
-    event SchemeAdded(a, b, c, d, e, f, g, h string);
-    function addScheme(a, b, c, d, e, f, g, h string) public {
-        uint256 id = totalSchemes.current();
+    event SchemeAdded(string[] a,
+                      string[] b,
+                      string[] c,
+                      string[] d,
+                      string[] e,
+                      string[] f,
+                      string[] g,
+                      string[] h);
+
+    function getSchemeId(string[] calldata a,
+                         string[] calldata b,
+                         string[] calldata c,
+                         string[] calldata d,
+                         string[] calldata e,
+                         string[] calldata f,
+                         string[] calldata g,
+                         string[] calldata h
+    ) public pure returns (string memory) {
+        bytes32 id = keccak256(abi.encodePacked(a, b, c, d, e, f, g, h));
+        return string(abi.encodePacked(id));
+    }
+
+    function css(string calldata schemeId, uint256 palette) public view returns (string memory) {
+        SchemesLib.Scheme memory scheme = schemes[schemeId];
+        return scheme.css(palette);
+    }
+
+    // newScheme creates a scheme [<label>, <packed variations>, <css prop>...]
+    function newScheme(string[] calldata a,
+                       string[] calldata b,
+                       string[] calldata c,
+                       string[] calldata d,
+                       string[] calldata e,
+                       string[] calldata f,
+                       string[] calldata g,
+                       string[] calldata h
+    ) public {
+        string memory id = getSchemeId(a, b, c, d, e, f, g, h);
         schemes[id] = SchemesLib.Scheme({
-            labels: [a, b, c, d, e, f, g]
-            });
+            classes: [a, b, c, d, e, f, g, h],
+            creator: msg.sender
+        });
+        emit SchemeAdded(a, b, c, d, e, f, g, h);
+    }
+
+    function mint(address to, string calldata schemeId) public nonReentrant {
+        require(to != address(0), "Zero `to` address");
+        uint256 id = totalNFTs.current();
+        _safeMint(to, id);
+        totalNFTs.increment();
     }
 }
